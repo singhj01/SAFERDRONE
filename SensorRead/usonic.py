@@ -10,8 +10,11 @@ if __name__ == "__main__":
    if not pi.connected:
       exit()
 
-   S=[]
-   S.append(srte.sonar(pi, 17, 27))
+   Front=[]
+   Right=[]
+   Left=[]
+   Rear=[]
+   Front.append(srte.sonar(pi, 17, 27))
 
    end = time.time() + 30.0
 
@@ -20,12 +23,12 @@ if __name__ == "__main__":
    try:
       while time.time() < end:
 
-         for s in S:
+         for s in Front:
             s.trigger()
 
          time.sleep(0.03)
 
-         for s in S:
+         for s in Front:
             print("{} {:.1f}".format(r, s.read()))
 
          time.sleep(0.2)
@@ -37,7 +40,7 @@ if __name__ == "__main__":
 
    print("\ntidying up")
 
-   for s in S:
+   for s in Front:
       s.cancel()
 
    pi.stop()
