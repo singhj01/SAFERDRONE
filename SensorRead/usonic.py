@@ -1,5 +1,5 @@
 #/usr/bin/env python
-def avoid(flagFront,flagRear,flagLeft,flagRight,):
+def avoid(flagFront,flagRear,flagLeft,flagRight):
     if (!flagFront && !flagRear && !flagRight && !flagLeft):
         print("Normal Flight")
     else if (flagFront && !flagRear && !flagRight && !flagLeft):
@@ -11,7 +11,12 @@ def avoid(flagFront,flagRear,flagLeft,flagRight,):
     else if (!flagFront && !flagRear && !flagRight && flagLeft):
         print("Object on Left")
     else:
-        print("Your surrounded")
+        print("You're surrounded")
+    flagLeft = False
+    flagRear = False
+    flagLeft = False
+    flagRight = False
+    return flagFront,flagRear,flagLeft,flagRight
 
 if __name__ == "__main__":
 
@@ -29,6 +34,7 @@ if __name__ == "__main__":
    S.append(srte.sonar(pi, 17, 27)) #sensor trigger pin 17/ echo pin 27
    S.append(srte.sonar(pi, 23, 24)) #sensor trigger pin 23/ echo pin 24
    end = time.time() + 1.0
+   #directional flags to determine which direction to avoid
    flagFront = False
    flagLeft = False
    flagRight = False
@@ -58,7 +64,8 @@ if __name__ == "__main__":
 	    print("{} {:.1f}".format(r, Readings[s]))
 
         time.sleep(0.01)
-        avoid(flagFront,flagRear,flagLeft,flagRight)
+        flagFront,flagRear,flagLeft,flagRight = avoid(flagFront,flagRear,flagLeft,flagRight)
+
 
 
         r += 1
