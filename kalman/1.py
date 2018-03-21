@@ -85,6 +85,6 @@ if __name__ == '__main__':
 
         # Reset by pressing CTRL + C
     except KeyboardInterrupt:
-        print("Measurement stopped by User")
+        print("Measurement needs work, still working on code")
         GPIO.cleanup()
 
