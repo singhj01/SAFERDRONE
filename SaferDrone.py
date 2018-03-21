@@ -52,7 +52,7 @@ if __name__ == "__main__":
    port.bytesize = 8
    port.parity = serial.PARITY_ODD
    port.stopbits = 2
-   port.timeout = 6
+   port.timeout = 3
 
    pi = pigpio.pi() 
 
@@ -61,12 +61,14 @@ if __name__ == "__main__":
 
    S=[] #this will hold sensor objects
    Readings = [0,0,0,0,0,0,0,0] #the most recent reading values from the sensor
+   S.append(srte.sonar(pi, 03, 04))
+   S.append(srte.sonar(pi, 14, 15))
    S.append(srte.sonar(pi, 17, 27)) #sensor trigger pin 17/ echo pin 27
    S.append(srte.sonar(pi, 23, 24)) #sensor trigger pin 23/ echo pin 24
    end = time.time() + 30.0
   
    r = 1
-
+   port.write(bytearray.fromhex("0f 00 04 20 00 01 38 3f 00 fe 27 00 01 08 40 00 02 10 80 00 04 20 00 00 00")
    try:
         while time.time() < end:
             #get sbus message
@@ -95,6 +97,7 @@ if __name__ == "__main__":
                         direction = direction | 8
                 #print("{} {:.1f}".format(r, Readings[s]))
             message = directionFlags[direction](message)
+            print (' ' .join(x.encode('hex') for x in message))
             port.write(message)
 
             r += 1
