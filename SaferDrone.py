@@ -66,8 +66,8 @@ if __name__ == "__main__":
 
    S=[] #this will hold sensor objects
    Readings = [0,0,0,0,0,0,0,0] #the most recent reading values from the sensor
-   #S.append(srte.sonar(pi, 03, 04))
-   #S.append(srte.sonar(pi, 14, 15))
+   S.append(srte.sonar(pi, 05, 06)) #sensor trigger pin 04/ echo pin 04
+   S.append(srte.sonar(pi, 13, 19)) #sensor trigger pin 14/ echo pin 15
    S.append(srte.sonar(pi, 17, 27)) #sensor trigger pin 17/ echo pin 27
    S.append(srte.sonar(pi, 23, 24)) #sensor trigger pin 23/ echo pin 24
    end = time.time() + 30.0
@@ -75,15 +75,15 @@ if __name__ == "__main__":
    r = 1
    
    #test code
-   first = bytearray.fromhex("0f 00 04 20 00 01 38 3f 00 fe 27 00 01 08 40 00 02 10 80 00 04 20 00 00 00")
+   #first = bytearray.fromhex("0f 00 04 20 00 01 38 3f 00 fe 27 00 01 08 40 00 02 10 80 00 04 20 00 00 00")
 
    try:
         while time.time() < end:
 	    #test code
-	    message = first
+	    #message = first
       
             #get sbus message
-            #message = port.read(25)
+            message = port.read(25)
       
             #directional flag to determine which direction to avoid 
 	    #bits are defined as right,rear,left,front where a 1 in that bit
@@ -93,23 +93,23 @@ if __name__ == "__main__":
             for s in S: #iterate through each sensor
                 s.trigger()
 
-            time.sleep(0.008)
+            time.sleep(0.009)
 
             for s in range(len(S)):#read each sensor and store in readings array
                 Readings[s] = S[s].read()
-                if (Readings[s] <= 100):
-                    if (s == 0 or s == 1):#front sensors
+                if (Readings[s] <= 50):
+                    if (s == 0):#front sensors
                         direction = direction | 1
-                    if (s == 2 or s == 3):#left sensors
+                    if (s == 1):#left sensors
                         direction = direction | 2
-                    if (s == 4 or s == 5):#rear sensors
+                    if (s == 2):#rear sensors
                         direction = direction | 4
-                    if (s == 6 or s == 7):#right sensors
+                    if (s == 3):#right sensors
                         direction = direction | 8
-               # print("{} {:.1f}".format(r, Readings[s]))
-            #message = directionFlags[direction](message)
+                print("{} {:.1f}".format(r, Readings[s]))
+            message = directionFlags[direction](message)
             #print (' ' .join(x.encode('hex') for x in message))
-            #port.write(message)
+            port.write(message)
 
             r += 1
             time.sleep(.009)
