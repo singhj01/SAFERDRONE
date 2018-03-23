@@ -70,7 +70,7 @@ if __name__ == "__main__":
    S.append(srte.sonar(pi, 13, 19)) #sensor trigger pin 14/ echo pin 15
    S.append(srte.sonar(pi, 17, 27)) #sensor trigger pin 17/ echo pin 27
    S.append(srte.sonar(pi, 23, 24)) #sensor trigger pin 23/ echo pin 24
-   end = time.time() + 30.0
+   end = time.time() + 60.0
   
    r = 1
    
@@ -83,7 +83,6 @@ if __name__ == "__main__":
 	    #message = first
       
             #get sbus message
-            message = port.read(25)
       
             #directional flag to determine which direction to avoid 
 	    #bits are defined as right,rear,left,front where a 1 in that bit
@@ -93,11 +92,12 @@ if __name__ == "__main__":
             for s in S: #iterate through each sensor
                 s.trigger()
 
-            time.sleep(0.009)
+            time.sleep(0.01)
 
             for s in range(len(S)):#read each sensor and store in readings array
+                message = port.read(25)
                 Readings[s] = S[s].read()
-                if (Readings[s] <= 50):
+                if (Readings[s] <= 20):
                     if (s == 0):#front sensors
                         direction = direction | 1
                     if (s == 1):#left sensors
@@ -107,12 +107,12 @@ if __name__ == "__main__":
                     if (s == 3):#right sensors
                         direction = direction | 8
                 print("{} {:.1f}".format(r, Readings[s]))
-            message = directionFlags[direction](message)
-            #print (' ' .join(x.encode('hex') for x in message))
-            port.write(message)
+            	message = directionFlags[direction](message)
+            	#print (' ' .join(x.encode('hex') for x in message))
+            	port.write(message)
 
             r += 1
-            time.sleep(.009)
+            time.sleep(.0095)
 
    except KeyboardInterrupt:
       pass
