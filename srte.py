@@ -49,7 +49,8 @@ class sonar:
       self._one_tick = None
 
       if self.trig is not None:
-         self.pi.gpio_trigger(self.trig, 11) # 11 micros trigger pulse
+         self.pi.gpio_trigger(self.trig, 11) # 15 micros trigger pulse
+
    def read(self):
       return self._distance
 

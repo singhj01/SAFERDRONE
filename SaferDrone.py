@@ -43,7 +43,7 @@ directionFlags = {0:Normal,
 			4:Rear,
 			8:Right,
 }
-      
+
 if __name__ == "__main__":
    import serial
    import time
@@ -59,7 +59,7 @@ if __name__ == "__main__":
    port.stopbits = 2
    port.timeout = 6
 
-   pi = pigpio.pi() 
+   pi = pigpio.pi()
 
    if not pi.connected:
        exit()
@@ -71,9 +71,9 @@ if __name__ == "__main__":
    S.append(srte.sonar(pi, 17, 27)) #sensor trigger pin 17/ echo pin 27
    S.append(srte.sonar(pi, 23, 24)) #sensor trigger pin 23/ echo pin 24
    end = time.time() + 60.0
-  
+
    r = 1
-   
+
    #test code
    #first = bytearray.fromhex("0f 00 04 20 00 01 38 3f 00 fe 27 00 01 08 40 00 02 10 80 00 04 20 00 00 00")
 
@@ -81,21 +81,18 @@ if __name__ == "__main__":
         while time.time() < end:
 	    #test code
 	    #message = first
-      
+
             #get sbus message
-      
-            #directional flag to determine which direction to avoid 
+
+            #directional flag to determine which direction to avoid
 	    #bits are defined as right,rear,left,front where a 1 in that bit
 	    # means an object is present that direction
             direction = 0
 
-            for s in S: #iterate through each sensor
-                s.trigger()
-
-            time.sleep(0.01)
-
-            for s in range(len(S)):#read each sensor and store in readings array
+            for s in range(len(S)): #iterate through each sensor
                 message = port.read(25)
+                s.trigger()
+            #for s in range(len(S)):#read each sensor and store in readings array
                 Readings[s] = S[s].read()
                 if (Readings[s] <= 20):
                     if (s == 0):#front sensors
@@ -107,12 +104,13 @@ if __name__ == "__main__":
                     if (s == 3):#right sensors
                         direction = direction | 8
                 print("{} {:.1f}".format(r, Readings[s]))
-            	message = directionFlags[direction](message)
+            	#message = directionFlags[direction](message)
+                message = directionFlags.setdefault(direction,message)(message)
             	#print (' ' .join(x.encode('hex') for x in message))
             	port.write(message)
 
             r += 1
-            time.sleep(.0095)
+            time.sleep(.0025)
 
    except KeyboardInterrupt:
       pass
