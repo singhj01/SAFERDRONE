@@ -5,32 +5,30 @@ def Normal(message):
    return str(message)
 
 
+#Avoid object to the front
 def Front(message):
-   #Object to the front
    temp = list(str(message))
    temp[2] = binascii.unhexlify('64')
    temp[3] = binascii.unhexlify('0b')
    return "".join(temp)
 
 
+#Avoid object to the left
 def Left(message):
-   #Object to the left
    temp = list(str(message))
    temp[1] = binascii.unhexlify('94')
    temp[2] = binascii.unhexlify('06')
    return "".join(temp)
 
-
+#Avoid object to the rear
 def Rear(message):
-   #Object to the rear
    temp = list(str(message))
    temp[2] = binascii.unhexlify('a4')
    temp[3] = binascii.unhexlify('34')
    return "".join(temp)
 
-
+#Avoid object to the right
 def Right(message):
-   #Object to the right
    temp = list(message)
    temp[2] = binascii.unhexlify('bc')
    temp[3] = binascii.unhexlify('01')
@@ -43,6 +41,8 @@ directionFlags = {0:Normal,
 			4:Rear,
 			8:Right,
 }
+
+
 def trigger(TRIG):
    GPIO.output(TRIG,True)
    time.sleep(.00001)
@@ -56,6 +56,7 @@ if __name__ == "__main__":
    import binascii
 
    GPIO.setmode(GPIO.BCM)
+   
    #SBUS Definition (1 startbit, 8 databits, 1 odd parity, 2 stopbits)
    port = serial.Serial('/dev/ttyAMA0')
    port.baudrate = 100000
@@ -66,38 +67,53 @@ if __name__ == "__main__":
 
 
    GPIO.setup(5,GPIO.OUT)
-   GPIO.setup(6,GPIO.OUT)
+   GPIO.setup(6,GPIO.IN)
 
    GPIO.setup(13,GPIO.OUT)
-   GPIO.setup(19,GPIO.OUT)
+   GPIO.setup(19,GPIO.IN)
    
    GPIO.setup(17,GPIO.OUT)
-   GPIO.setup(27,GPIO.OUT)
+   GPIO.setup(27,GPIO.IN)
    
    GPIO.setup(23,GPIO.OUT)
-   GPIO.setup(24,GPIO.OUT)
+   GPIO.setup(24,GPIO.IN)
 
-   S=[[5,6][13,19][17,27][23,24]] #this will hold sensor objects
+   S=[[5,6][13,19][17,27][23,24]] #this will hold sensor GPIO channel numbers {trig/echo}
    Readings = [0,0,0,0,0,0,0,0] #the most recent reading values from the sensor
+   #start_time = [0,0,0,0,0,0,0,0]
+   #stop_time = [0,0,0,0,0,0,0,0]
    end = time.time() + 60.0
 
    r = 1
    direction = 0
 
+   #potential interrupt code?
+   #GPIO.add_event_detect(6,GPIO.FALLING,callback=mycallback)
+   #def mycallback(channel):
+   #   time = time.time()
+   #   if (channel == 6):#front sensors
+   #      direction = direction | 1
+   #      stop_time[0] = time
+   #      Readings[0] = (stop_time[0]-start_time[0])*34029/2
+   #   if (channel == 19):#left sensors
+   #      direction = direction | 2
+   #      stop_time[1] = time
+   #      Readings[1] = (stop_time[1]-start_time[1])*34029/2
+   #   if (channel == 27):#rear sensors
+   #      direction = direction | 4
+   #      stop_time[2] = time
+   #      Readings[2] = (stop_time[2]-start_time[2])*34029/2
+   #   if (channel == 24):#right sensors
+   #      direction = direction | 8
+   #      stop_time[3] = time
+   #      Readings[3] = (stop_time[3]-start_time[3])*34029/2 
 
+      
+   
    #test code
    #first = bytearray.fromhex("0f 00 04 20 00 01 38 3f 00 fe 27 00 01 08 40 00 02 10 80 00 04 20 00 00 00")
    try:
         while time.time() < end:
-
-
-            #get sbus message
-
-            #directional flag to determine which direction to avoid
-	    #bits are defined as right,rear,left,front where a 1 in that bit
-	    # means an object is present that direction
-
-
             for s in range(len(S)): #iterate through each sensor
                 if (direction == 0)
                    message = port.read(25)
@@ -106,7 +122,7 @@ if __name__ == "__main__":
             #for s in range(len(S)):#read each sensor and store in readings array
                 GPIO.wait_for_edge(S[s][1],GPIO.RISING)
                 start_time = time.time()
-                GPIO.wait_for_edge(S[s][1],GPIO.FALLING,timeout = 20)
+                GPIO.wait_for_edge(S[s][1],GPIO.FALLING,timeout = 20) #max echo at 20ms, this gives a max range of 340cm
                 stop_time = time.time()
                 Readings[s] = (stop_time-start_time)*34029/2
                 if (Readings[s] <= 20):
@@ -130,6 +146,7 @@ if __name__ == "__main__":
                         
                 print("{} {:.1f}".format(r, Readings[s]))
             	#message = directionFlags[direction](message)
+                message = port.read(25)
                 message = directionFlags.setdefault(direction,message)(message)
             	#print (' ' .join(x.encode('hex') for x in message))
             	port.write(message)
