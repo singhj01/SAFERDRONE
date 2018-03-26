@@ -48,7 +48,7 @@ def trigger(TRIG):
    time.sleep(.00001)
    GPIO.output(TRIG,False)
 
-   
+
 if __name__ == "__main__":
    import serial
    import time
@@ -56,7 +56,7 @@ if __name__ == "__main__":
    import binascii
 
    GPIO.setmode(GPIO.BCM)
-   
+
    #SBUS Definition (1 startbit, 8 databits, 1 odd parity, 2 stopbits)
    port = serial.Serial('/dev/ttyAMA0')
    port.baudrate = 100000
@@ -71,10 +71,10 @@ if __name__ == "__main__":
 
    GPIO.setup(13,GPIO.OUT)
    GPIO.setup(19,GPIO.IN)
-   
+
    GPIO.setup(17,GPIO.OUT)
    GPIO.setup(27,GPIO.IN)
-   
+
    GPIO.setup(23,GPIO.OUT)
    GPIO.setup(24,GPIO.IN)
 
@@ -106,10 +106,10 @@ if __name__ == "__main__":
    #   if (channel == 24):#right sensors
    #      direction = direction | 8
    #      stop_time[3] = time
-   #      Readings[3] = (stop_time[3]-start_time[3])*34029/2 
+   #      Readings[3] = (stop_time[3]-start_time[3])*34029/2
 
-      
-   
+
+
    #test code
    #first = bytearray.fromhex("0f 00 04 20 00 01 38 3f 00 fe 27 00 01 08 40 00 02 10 80 00 04 20 00 00 00")
    try:
@@ -122,28 +122,32 @@ if __name__ == "__main__":
             #for s in range(len(S)):#read each sensor and store in readings array
                 GPIO.wait_for_edge(S[s][1],GPIO.RISING)
                 start_time = time.time()
-                GPIO.wait_for_edge(S[s][1],GPIO.FALLING,timeout = 20) #max echo at 20ms, this gives a max range of 340cm
-                stop_time = time.time()
+                try:
+                    GPIO.wait_for_edge(S[s][1],GPIO.FALLING,timeout = 20) #max echo at 20ms, this gives a max range of 340cm
+                    stop_time = time.time()
+                except: #if timeout then continue and assume max distance
+                    stop_time = time.time()
+
                 Readings[s] = (stop_time-start_time)*34029/2
                 if (Readings[s] <= 20):
                     if (s == 0):#front sensors
                         direction = direction | 1
-                    if (s == 1):#left sensors
+                    elif (s == 1):#left sensors
                         direction = direction | 2
-                    if (s == 2):#rear sensors
+                    elif (s == 2):#rear sensors
                         direction = direction | 4
-                    if (s == 3):#right sensors
+                    elif (s == 3):#right sensors
                         direction = direction | 8
                 else:
                     if (s == 0):#front sensors
                         direction = direction & 14
-                    if (s == 1):#left sensors
+                    elif (s == 1):#left sensors
                         direction = direction & 13
-                    if (s == 2):#rear sensors
+                    elif (s == 2):#rear sensors
                         direction = direction & 11
-                    if (s == 3):#right sensors
+                    elif (s == 3):#right sensors
                         direction = direction & 7
-                        
+
                 print("{} {:.1f}".format(r, Readings[s]))
             	#message = directionFlags[direction](message)
                 message = port.read(25)
@@ -163,4 +167,4 @@ if __name__ == "__main__":
       s.cancel()
    print Readings #print recent readings
    print r
-   pi.stop()
+   GPIO.cleanup()
