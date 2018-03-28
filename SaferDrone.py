@@ -66,10 +66,11 @@ if __name__ == "__main__":
 
    S=[] #this will hold sensor objects
    Readings = [0,0,0,0,0,0,0,0] #the most recent reading values from the sensor
-   S.append(srte.sonar(pi, 05, 06)) #sensor trigger pin 04/ echo pin 04
+   S.append(srte.sonar(pi, 16 , 20)) #sensor trigger pin 04/ echo pin 04
    S.append(srte.sonar(pi, 13, 19)) #sensor trigger pin 14/ echo pin 15
-   S.append(srte.sonar(pi, 17, 27)) #sensor trigger pin 17/ echo pin 27
    S.append(srte.sonar(pi, 23, 24)) #sensor trigger pin 23/ echo pin 24
+   S.append(srte.sonar(pi, 17, 27)) #sensor trigger pin 17/ echo pin 27
+
    end = time.time() + 60.0
 
    r = 1
@@ -88,11 +89,12 @@ if __name__ == "__main__":
 	    #bits are defined as right,rear,left,front where a 1 in that bit
 	    # means an object is present that direction
             direction = 0
+            message = port.read(25)            	
 
             for s in range(len(S)): #iterate through each sensor
-                message = port.read(25)
-                s.trigger()
-            #for s in range(len(S)):#read each sensor and store in readings array
+                S[s].trigger()
+	    time.sleep(.005)	
+            for s in range(len(S)):#read each sensor and store in readings array
                 Readings[s] = S[s].read()
                 if (Readings[s] <= 20):
                     if (s == 0):#front sensors
@@ -104,8 +106,8 @@ if __name__ == "__main__":
                     if (s == 3):#right sensors
                         direction = direction | 8
                 print("{} {:.1f}".format(r, Readings[s]))
-            	#message = directionFlags[direction](message)
-                message = directionFlags.setdefault(direction,message)(message)
+	        #port.write(directionFlags[direction](message))
+                #message = directionFlags.setdefault(direction,message)(message)
             	#print (' ' .join(x.encode('hex') for x in message))
             	port.write(message)
 

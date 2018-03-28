@@ -35,8 +35,11 @@ if __name__ == "__main__":
 
    S=[] #this will hold sensor objects
    Readings = [0,0,0,0,0,0,0,0] #the most recent reading values from the sensor
-  # S.append(srte.sonar(pi, 17, 27)) #sensor trigger pin 17/ echo pin 27
-   S.append(srte.sonar(pi, 18, 24)) #sensor trigger pin 23/ echo pin 24
+   S.append(srte.sonar(pi, 16, 20)) #sensor trigger pin 23/ echo pin 24
+   S.append(srte.sonar(pi, 13, 19)) #sensor trigger pin 23/ echo pin 24
+   S.append(srte.sonar(pi, 23, 24)) #sensor trigger pin 23/ echo pin 24
+   S.append(srte.sonar(pi, 17, 27)) #sensor trigger pin 17/ echo pin 27
+
    end = time.time() + 30.0
   
 
@@ -53,11 +56,11 @@ if __name__ == "__main__":
             for s in S: #iterate through each sensor
                 s.trigger()
 
-            time.sleep(0.01)
+            time.sleep(0.015)
 
             for s in range(len(S)):#read each sensor and store in readings array
                 Readings[s] = S[s].read()
-                if (Readings[s] <= 100):
+                if (Readings[s] <= 20):
                     if (s == 0 or s == 1):#front sensors
                         direction = direction | 1
                     if (s == 2 or s == 3):#left sensors
@@ -69,7 +72,7 @@ if __name__ == "__main__":
                 print("{} {:.1f}".format(r, Readings[s]))
                 #print r
             directionFlags[direction]()
-            time.sleep(0.005)
+            time.sleep(0.01)
 
             r += 1
 
