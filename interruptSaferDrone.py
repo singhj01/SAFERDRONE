@@ -7,7 +7,7 @@ def Normal(message):
 
 #Avoid object to the front
 def Front(message):
-   print ("front")
+   #print ("front")
    temp = list(str(message))
    temp[2] = binascii.unhexlify('64')
    temp[3] = binascii.unhexlify('0b')
@@ -16,7 +16,7 @@ def Front(message):
 
 #Avoid object to the left
 def Left(message):
-   print ("left")
+   #print ("left")
    temp = list(str(message))
    temp[1] = binascii.unhexlify('94')
    temp[2] = binascii.unhexlify('06')
@@ -24,7 +24,7 @@ def Left(message):
 
 #Avoid object to the rear
 def Rear(message):
-   print ("Rear")
+   #print ("Rear")
    temp = list(str(message))
    temp[2] = binascii.unhexlify('a4')
    temp[3] = binascii.unhexlify('34')
@@ -32,18 +32,32 @@ def Rear(message):
 
 #Avoid object to the right
 def Right(message):
-   print ("Right")
+   #print ("Right")
    temp = list(message)
    temp[2] = binascii.unhexlify('bc')
    temp[3] = binascii.unhexlify('01')
    return "".join(temp)
 
+def Panic(message):
+   return binascii.unhexlify("0f 00 04 20 00 01 38 3f 00 fe 27 00 01 08 40 00 02 10 80 00 04 20 00 00 00")
 
+#which direction to avoid
 directionFlags = {0:Normal,
-			1:Front,
-			2:Left,
-			4:Rear,
-			8:Right,
+			1:Front, #object front
+			2:Left,  #object left
+                        3:Front, #object front and left
+			4:Rear,  #object rear
+                        5:Right, #object front and rear
+                        6:Rear,  #object rear and left
+                        7:Left,  #object front, rear, and left
+			8:Right, #Object right
+                        9:Front, #object front and right 
+                        10:Rear, #object right and left
+                        11;Front #object right left and front
+                        12:Rear, #object right and rear
+                        13:Right,#object front and rear and right
+                        14:Rear, #object rear, left, right
+                        15:Panic, #object everywhere
 }
 
 
@@ -86,7 +100,7 @@ if __name__ == "__main__":
    #S = [[0 for x in range(2)] for y in range(4)]
    S=[[16,20],[13,19],[23,24],[17,27]] #this will hold sensor GPIO channel numbers {trig/echo}
    Readings = [0,0,0,0,0,0,0,0] #the most recent reading values from the sensor
-   posi = ['Top left','Top Right', 'Bottom Left', 'Bottom Right']
+   posi = ['Top left: ','Top Right: ', 'Bottom Left: ', 'Bottom Right: ']
    #start_time = [0,0,0,0,0,0,0,0]
    #stop_time = [0,0,0,0,0,0,0,0]
    end = time.time() + 90.0
@@ -126,16 +140,14 @@ if __name__ == "__main__":
                    message = port.read(25)
                    port.write(message)
                 trigger(S[s][0])
-            #for s in range(len(S)):#read each sensor and store in readings array
+                
 		while (GPIO.input(S[s][1]) == 0):
-                #GPIO.wait_for_edge(S[s][1],GPIO.RISING)
                    start_time = time.time()
 		while (GPIO.input(S[s][1]) == 1):                
-		#GPIO.wait_for_edge(S[s][1],GPIO.FALLING) #max echo at 20ms, this gives a max range of 340cm
                    stop_time = time.time()
-                #except TimeoutError: #if timeout then continue and assume max distance
-                #    stop_time = time.time()
-		#    print ("Entered exception")
+                   if (stop_time - start_time = .018):
+                      break
+                   
 
                 Readings[s] = (stop_time-start_time)*34029/2
                 if (Readings[s] <= 20):
@@ -158,11 +170,12 @@ if __name__ == "__main__":
                         direction = direction & 7
 
                 print(posi[s] + "{} {:.1f}".format(r, Readings[s]))
-            	message = directionFlags[direction](message)
-                message = port.read(25)
+                while (time.time() - start_time < .05):
+                   message = port.read(25)
+                   message = directionFlags[direction](message)
                 #message = directionFlags.setdefault(direction,message)(message)
             	#print (' ' .join(x.encode('hex') for x in message))
-            	port.write(message)
+                   port.write(message)
 
             r += 1
             time.sleep(.005)
