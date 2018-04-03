@@ -55,7 +55,7 @@ directionFlags = {0:Normal,
                         10:Rear, #object right and left
                         11;Front #object right left and front
                         12:Rear, #object right and rear
-                        13:Right,#object front and rear and right
+                        13:Right, #object front and rear and right
                         14:Rear, #object rear, left, right
                         15:Panic, #object everywhere
 }
