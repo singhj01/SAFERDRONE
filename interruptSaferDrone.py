@@ -39,8 +39,8 @@ def Right(message):
    return "".join(temp)
 
 def Panic(message):
-   return binascii.unhexlify("0f 00 04 20 00 01 38 3f 00 fe 27 00 01 08 40 00 02 10 80 00 04 20 00 00 00")
-
+   message =  binascii.unhexlify("0f0004200001383f00fe270001084000021080000420000000")
+   return message
 #which direction to avoid
 directionFlags = {0:Normal,
 			1:Front, #object front
@@ -53,7 +53,7 @@ directionFlags = {0:Normal,
 			8:Right, #Object right
                         9:Front, #object front and right 
                         10:Rear, #object right and left
-                        11;Front #object right left and front
+                        11:Front, #object right left and front
                         12:Rear, #object right and rear
                         13:Right, #object front and rear and right
                         14:Rear, #object rear, left, right
@@ -63,7 +63,7 @@ directionFlags = {0:Normal,
 
 def trigger(TRIG):
    GPIO.output(TRIG,True)
-   time.sleep(.00001)
+   time.sleep(.000015)
    GPIO.output(TRIG,False)
 
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
    port.stopbits = 2
    port.timeout = 6
 
-   GPIO.cleanup()
+   #GPIO.cleanup()
 
    GPIO.setup(16,GPIO.OUT)
    GPIO.setup(20,GPIO.IN)
@@ -103,7 +103,7 @@ if __name__ == "__main__":
    posi = ['Top left: ','Top Right: ', 'Bottom Left: ', 'Bottom Right: ']
    #start_time = [0,0,0,0,0,0,0,0]
    #stop_time = [0,0,0,0,0,0,0,0]
-   end = time.time() + 90.0
+   end = time.time() + 900.0
 
    r = 1
    direction = 0
@@ -145,7 +145,7 @@ if __name__ == "__main__":
                    start_time = time.time()
 		while (GPIO.input(S[s][1]) == 1):                
                    stop_time = time.time()
-                   if (stop_time - start_time = .018):
+                   if (stop_time - start_time >= .018):
                       break
                    
 
@@ -170,15 +170,15 @@ if __name__ == "__main__":
                         direction = direction & 7
 
                 print(posi[s] + "{} {:.1f}".format(r, Readings[s]))
-                while (time.time() - start_time < .05):
-                   message = port.read(25)
+                while (time.time() - start_time <= .05):                  
+		   message = port.read(25)
                    message = directionFlags[direction](message)
                 #message = directionFlags.setdefault(direction,message)(message)
-            	#print (' ' .join(x.encode('hex') for x in message))
+            	   print (' ' .join(x.encode('hex') for x in message))
                    port.write(message)
 
             r += 1
-            time.sleep(.005)
+            #time.sleep(.005)
 
    except KeyboardInterrupt:
       pass
