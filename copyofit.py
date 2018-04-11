@@ -84,7 +84,7 @@ if __name__ == "__main__":
    port.timeout = 6
 
    #front   
-   GPIO.setup(14,GPIO.OUT)
+   GPIO.setup(4,GPIO.OUT)
    GPIO.setup(17,GPIO.IN)
    #left
    GPIO.setup(27,GPIO.OUT)
@@ -101,24 +101,25 @@ if __name__ == "__main__":
    #front/right
    GPIO.setup(16,GPIO.OUT)
    GPIO.setup(20,GPIO.IN)
-   #rear/left
+   #rear/right
    GPIO.setup(25,GPIO.OUT)
    GPIO.setup(12,GPIO.IN)
-   #rear/right
+   #rear/left
    GPIO.setup(23,GPIO.OUT)
    GPIO.setup(24,GPIO.IN)
    
 
-   S=[[14,17],[27,22],[05,06],[13,19],[26,21],[16,20],[25,12],[23,24]] #this will hold sensor GPIO channel numbers {trig/echo,}
+   S=[[4,17],[27,22],[05,06],[13,19],[26,21],[16,20],[25,12],[23,24]] #this will hold sensor GPIO channel numbers {trig/echo,}
    Readings = [0,0,0,0,0,0,0,0] #the most recent reading values from the sensor
-   #end = time.time() + 900.0
-   LIMIT = 20;	
+   LIMIT = 30 #minimum distance
 
    r = 1
    direction = 0
-
-   #test code
-   #first = bytearray.fromhex("0f 00 04 20 00 01 38 3f 00 fe 27 00 01 08 40 00 02 10 80 00 04 20 00 00 00")
+   #try to correct wrong order
+   first = binascii.unhexlify("0f0004200001383f00fe270001084000021080000420000000")
+   while (port.read(25) != first):
+      port.read(1)
+         
    try:
         while 1:
             for s in range(len(S)): #iterate through each sensor
@@ -132,11 +133,11 @@ if __name__ == "__main__":
                    start_time = time.time()
 		while (GPIO.input(S[s][1]) == 1):                
                    stop_time = time.time()
-                   if (stop_time - start_time >= .018):
+                   if (stop_time - start_time >= .018): #timeout after 18ms
                       break
                    
 
-                Readings[s] = (stop_time-start_time)*34029/2
+                Readings[s] = (stop_time-start_time)*34029/2 #reading in cm
                 if (Readings[s] <= LIMIT):
                     if (s == 0):#front sensors
                         direction = direction | 1 #0001
@@ -175,7 +176,7 @@ if __name__ == "__main__":
                    port.write(message)
 
             r += 1
-            #time.sleep(.005)
+            time.sleep(.005)
 
    except KeyboardInterrupt:
       pass
