@@ -61,15 +61,15 @@ if __name__ == "__main__":
 		while False:
 		
 			while r > 0:
-				r = r - 1
+				r = r - 1		#time update
 				r += 1
 			while Readings[s] >= 0:
-				print Readings[s]
-				Readings[s] -=  1
-		
-			k = r / (r + 9.1)
-			Readings[s] = Readings[s] + (k * (0.3 - Readings[s]))
-			r = (1- k) * r
+				print Readings[s]	#measurement update
+				Readings[s] +=  1
+		#kalman gain
+			k = r / (r + 113)		#113 = SNR with standard deviation = 0.05
+		 	Readings[s] = Readings[s] + (k * (0.3 - Readings[s])) #updating the estimate
+			r = (1- k) * r	#update error covariance
 		
 #		count = 100
 #		newValue = Readings[s]
