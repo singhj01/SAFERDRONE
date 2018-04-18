@@ -34,8 +34,8 @@ def Rear(message):
 def Right(message):
    #print ("Right")
    temp = list(message)
-   temp[1] = binascii.unhexlify('bc')
-   temp[2] = binascii.unhexlify('01')
+   temp[2] = binascii.unhexlify('bc')
+   temp[3] = binascii.unhexlify('01')
    return "".join(temp)
 
 def Panic(message):
@@ -83,7 +83,7 @@ if __name__ == "__main__":
    port.stopbits = 2
    port.timeout = 6
 
-   #front
+   #front   
    GPIO.setup(4,GPIO.OUT)
    GPIO.setup(17,GPIO.IN)
    #left
@@ -107,10 +107,11 @@ if __name__ == "__main__":
    #rear/left
    GPIO.setup(23,GPIO.OUT)
    GPIO.setup(24,GPIO.IN)
+   
 
    S=[[4,17],[27,22],[05,06],[13,19],[26,21],[16,20],[25,12],[23,24]] #this will hold sensor GPIO channel numbers {trig/echo,}
    Readings = [0,0,0,0,0,0,0,0] #the most recent reading values from the sensor
-   LIMIT = 50 #minimum distance
+   LIMIT = 30 #minimum distance
 
    r = 1
    direction = 0
@@ -122,6 +123,21 @@ if __name__ == "__main__":
    try:
         while 1:
             for s in range(len(S)): #iterate through each sensor
+
+                while False:
+
+                        while r > 0:
+                                r = r - 1               #time update
+                                r += 1
+                        while Readings[s] >= 0:
+                                print Readings[s]       #measurement update
+                                Readings[s] +=  1
+                #kalman gain
+                        k = r / (r + 113)               #113 = SNR with standard deviation = 0.05
+                        Readings[s] = Readings[s] + (k * (0.3 - Readings[s])) #updating the estimate
+                        r = (1- k) * r  #update error covariance
+
+
                 if (direction == 0):
                    message = port.read(25)
                    port.write(message)
@@ -166,8 +182,8 @@ if __name__ == "__main__":
                     elif ( s == 3 and Readings[3] >= LIMIT and Readings[6] >= LIMIT and Readings[6] >= LIMIT):#right sensors
                         direction = direction & 7
 
-                #print("{} {:.1f}".format(r, Readings[s]))
-                while (time.time() - start_time <= .045):                  
+                print("{} {:.1f}".format(r, Readings[s]))
+                while (time.time() - start_time <= .05):                  
 		   message = port.read(25)
                    message = directionFlags[direction](message)
                    #message = directionFlags.setdefault(direction,message)(message)
