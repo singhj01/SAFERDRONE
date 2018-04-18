@@ -39,7 +39,7 @@ def Right(message):
    return "".join(temp)
 
 def Panic(message):
-   message =  binascii.unhexlify("0f0004200001383f00fe270001084000021080000420000000")
+   message =  binascii.unhexlify("0f000420000138bf0217380001084000021080000420000000")
    return message
 #which direction to avoid
 directionFlags = {0:Normal,
@@ -115,9 +115,11 @@ if __name__ == "__main__":
    r = 1
    direction = 0
    #try to correct wrong order
-   first = binascii.unhexlify("0f0004200001383f00fe270001084000021080000420000000")
+   first = binascii.unhexlify("0f000420000138bf0217380001084000021080000420000000")
    while (port.read(25) != first):
-      port.read(1)
+      test = port.read(1)
+      print (' ' .join(x.encode('hex') for x in test))
+
          
    try:
         while 1:
@@ -166,12 +168,12 @@ if __name__ == "__main__":
                     elif ( s == 3 and Readings[3] >= LIMIT and Readings[6] >= LIMIT and Readings[6] >= LIMIT):#right sensors
                         direction = direction & 7
 
-                #print("{} {:.1f}".format(r, Readings[s]))
+                print("{} {:.1f}".format(r, Readings[s]))
                 while (time.time() - start_time <= .045):                  
 		   message = port.read(25)
                    message = directionFlags[direction](message)
                    #message = directionFlags.setdefault(direction,message)(message)
-            	   #print (' ' .join(x.encode('hex') for x in message))
+            	   print (' ' .join(x.encode('hex') for x in message))
                    port.write(message)
 
             r += 1
