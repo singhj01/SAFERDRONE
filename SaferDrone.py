@@ -110,16 +110,20 @@ if __name__ == "__main__":
 
    S=[[4,17],[27,22],[05,06],[13,19],[26,21],[16,20],[25,12],[23,24]] #this will hold sensor GPIO channel numbers {trig/echo,}
    Readings = [0,0,0,0,0,0,0,0] #the most recent reading values from the sensor
-   LIMIT = 50 #minimum distance
+   LIMIT = 5 #minimum distance
 
    r = 1
    direction = 0
    #try to correct wrong order
    first = binascii.unhexlify("0f000420000138bf0217380001084000021080000420000000")
+   startcommand = binascii.unhexlify("0f6c610b5b283dbf0217380001084000021080000420000000")
    while (port.read(25) != first):
       test = port.read(1)
-      print (' ' .join(x.encode('hex') for x in test))
-
+      #print (' ' .join(x.encode('hex') for x in test))
+   #while (port.read(25) != startcommand):
+   #   print("waiting")
+   
+	
          
    try:
         while 1:
