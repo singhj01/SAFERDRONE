@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sudo nice -n -18 python /home/pi/SAFERDRONE/SaferDrone.py
+sudo nice -n -18 python /home/pi/SAFERDRONE/nSaferDrone.py

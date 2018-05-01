@@ -1,6 +1,7 @@
 #/usr/bin/env python
 import numpy as np
-import matplotlib.pyplot as plt
+from scipy import signal
+#import matplotlib.pyplot as plt
 import serial
 import time
 import RPi.GPIO as GPIO
@@ -51,19 +52,19 @@ def Panic(message):
 directionFlags = {0:Normal,
 			1:Front, #object front
 			2:Left,  #object left
-            3:Front, #object front and left
+            		3:Front, #object front and left
 			4:Rear,  #object rear
-            5:Right, #object front and rear
-            6:Rear,  #object rear and left
-            7:Left,  #object front, rear, and left
+   	                5:Right, #object front and rear
+		        6:Rear,  #object rear and left
+		        7:Left,  #object front, rear, and left
 			8:Right, #Object right
-            9:Front, #object front and right
-            10:Rear, #object right and left
-            11:Front, #object right left and front
-            12:Rear, #object right and rear
-            13:Right, #object front and rear and right
-            14:Rear, #object rear, left, right
-            15:Panic, #object everywhere
+	                9:Front, #object front and right
+	                10:Rear, #object right and left
+	                11:Front, #object right left and front
+	                12:Rear, #object right and rear
+           	  	13:Right, #object front and rear and right
+     		        14:Rear, #object rear, left, right
+           		15:Panic, #object everywhere
 }
 
 
@@ -77,7 +78,7 @@ def kalman(z):
     # intial parameters
     n_iter = len(z)
     sz = (n_iter,) # size of array
-    x = -0.37727 # truth value (typo in example at top of p. 13 calls this z)
+    #x = -0.37727 # truth value (typo in example at top of p. 13 calls this z)
     # z is observations (normal about x, sigma=0.1)
 
     Q = 1e-5 # process variance
@@ -88,11 +89,11 @@ def kalman(z):
     xhatminus=np.zeros(sz) # a priori estimate of x
     Pminus=np.zeros(sz)   # a priori error estimate
     K=np.zeros(sz)         # gain or blending factor
-    R = 4**2 #estimate of measurement variance, change to see effect
+    R = 20**2 #estimate of measurement variance, change to see effect
 
     #intial guesses
     xhat[0] = 0.0
-    P[0] = 50.0
+    P[0] = 35.0
 
     for k in range(1,n_iter):
         # time update
@@ -103,8 +104,9 @@ def kalman(z):
         K[k] = Pminus[k]/( Pminus[k]+R )
         xhat[k] = xhatminus[k]+K[k]*(z[k]-xhatminus[k])
         P[k] = (1-K[k])*Pminus[k]
-
-
+    #time.sleep(1)
+    return xhat[r[s]]	
+	
 if __name__ == "__main__":
    GPIO.setmode(GPIO.BCM)
 
@@ -142,18 +144,19 @@ if __name__ == "__main__":
    GPIO.setup(24,GPIO.IN)
 
    S=[[4,17],[27,22],[05,06],[13,19],[26,21],[16,20],[25,12],[23,24]] #this will hold sensor GPIO channel numbers {trig/echo,}
-   Readings = np.zeros((8,25)) #the most recent reading values from the sensor
+   Readings = np.ones((8,15)) #the most recent reading values from the sensor
    LIMIT = 5 #minimum distance
    r = np.zeros(8) #last updated location
 
    def Update(s,value):
-        if(r[s] == 24):
-            r[s] = 0
-
-       Readings[s][r[s]] = value
-       Readings[s] = kalman(Readings[s])
-       r[s] += 1
-
+	
+	x = (Readings[s])
+	x = np.append(x,value)
+	xhat = signal.savgol_filter(x,11,3)
+	test = np.delete(Readings[s],0)
+	Readings[s] = np.append(test, xhat[14])
+	
+   count = 1
    direction = 0
    #try to correct wrong order
    first = binascii.unhexlify("0f000420000138bf0217380001084000021080000420000000")
@@ -164,22 +167,23 @@ if __name__ == "__main__":
    try:
         while 1:
             for s in range(len(S)): #iterate through each sensor
+		#time.sleep(.09)
                 if (direction == 0):
                    message = port.read(25)
                    port.write(message)
 
                 trigger(S[s][0])
 
-        		while (GPIO.input(S[s][1]) == 0):
-                           start_time = time.time()
-        		while (GPIO.input(S[s][1]) == 1):
-                           stop_time = time.time()
-                           if (stop_time - start_time >= .018): #timeout after 18ms
-                              break
+        	while (GPIO.input(S[s][1]) == 0):
+                    start_time = time.time()
+        	while (GPIO.input(S[s][1]) == 1):
+                    stop_time = time.time()
+                    if (stop_time - start_time >= .018): #timeout after 18ms
+                        break
 
-
+		
                 Update(s,((stop_time-start_time)*34029/2)) #update reading in cm
-                if (Readings[s] <= LIMIT):
+                if (Readings[s][r[s]] <= LIMIT):
                     if (s == 0):#front sensors
                         direction = direction | 1 #0001
                     elif (s == 1):#left sensors
@@ -199,25 +203,25 @@ if __name__ == "__main__":
 
 
                 else:
-                    if (s == 0 and Readings[0] >= LIMIT and Readings[4] >= LIMIT and Readings[5] >= LIMIT):#front sensors
+                    if (s == 0 and Readings[0][r[0]] >= LIMIT and Readings[4][r[4]] >= LIMIT and Readings[5][r[5]] >= LIMIT):#front sensors
                         direction = direction & 14 #1110
-                    elif ( s == 1 and Readings[1] >= LIMIT and Readings[4] >= LIMIT and Readings[7] >= LIMIT):#left sensors
+                    elif ( s == 1 and Readings[1][r[1]] >= LIMIT and Readings[4][r[4]] >= LIMIT and Readings[7][r[7]] >= LIMIT):#left sensors
                         direction = direction & 13
-                    elif ( s == 2 and Readings[2] >= LIMIT and Readings[6] >= LIMIT and Readings[7] >= LIMIT):#rear sensors
+                    elif ( s == 2 and Readings[2][r[2]] >= LIMIT and Readings[6][r[6]] >= LIMIT and Readings[7][r[7]] >= LIMIT):#rear sensors
                         direction = direction & 11
-                    elif ( s == 3 and Readings[3] >= LIMIT and Readings[6] >= LIMIT and Readings[6] >= LIMIT):#right sensors
+                    elif ( s == 3 and Readings[3][r[3]] >= LIMIT and Readings[6][r[6]] >= LIMIT and Readings[5][r[5]] >= LIMIT):#right sensors
                         direction = direction & 7
 
-                print("{} {:.1f}".format(r, Readings[s]))
+                print("{} {:.1f}".format(count, Readings[s][r[s]]))
                 while (time.time() - start_time <= .045):
-		            message = port.read(25)
+		    message = port.read(25)
                     message = directionFlags[direction](message)
                     #message = directionFlags.setdefault(direction,message)(message)
-            	    print (' ' .join(x.encode('hex') for x in message))
+            	    #print (' ' .join(x.encode('hex') for x in message))
                     port.write(message)
 
-            r += 1
-            time.sleep(.005)
+            count += 1
+            time.sleep(.001)
 
    except KeyboardInterrupt:
       pass
@@ -225,5 +229,5 @@ if __name__ == "__main__":
    print("\ntidying up")
 
    print Readings #print recent readings
-   print r
+   print count
    GPIO.cleanup()

@@ -28,7 +28,7 @@ if __name__ == "__main__":
    import time
    import pigpio
    import srte
-   from pykalman import KalmanFilter
+   #from pykalman import KalmanFilter
    pi = pigpio.pi()
 
    if not pi.connected:
@@ -37,8 +37,8 @@ if __name__ == "__main__":
    S=[] #this will hold sensor objects
    Readings = [0,0,0,0,0,0,0,0] #the most recent reading values from the sensor
   # S.append(srte.sonar(pi, 17, 27)) #sensor trigger pin 17/ echo pin 27
-   S.append(srte.sonar(pi, 18, 24)) #sensor trigger pin 23/ echo pin 24
-   end = time.time() + 4.0
+   S.append(srte.sonar(pi, 13, 19)) #sensor trigger pin 23/ echo pin 24
+   end = time.time() + 400.0
 
 
 
@@ -58,18 +58,18 @@ if __name__ == "__main__":
 
             for s in range(len(S)):#read each sensor and store in readings array
                 Readings[s] = S[s].read()		#prior error covariance
-		while False:
+		#while False:
 		
-			while r > 0:
-				r = r - 1		#time update
-				r += 1
-			while Readings[s] >= 0:
-				print Readings[s]	#measurement update
-				Readings[s] +=  1
+		while r > 0:
+			r = r - 1		#time update
+			r += 1
+		while Readings[s] >= 0:
+			print Readings[s]	#measurement update
+			Readings[s] +=  1
 		#kalman gain
-			k = r / (r + 113)		#113 = SNR with standard deviation = 0.05
-		 	Readings[s] = Readings[s] + (k * (0.3 - Readings[s])) #updating the estimate
-			r = (1- k) * r	#update error covariance
+		k = r / (r + 113)		#113 = SNR with standard deviation = 0.05
+	 	Readings[s] = Readings[s] + (k * (0.3 - Readings[s])) #updating the estimate
+		r = (1- k) * r	#update error covariance
 		
 #		count = 100
 #		newValue = Readings[s]

@@ -111,8 +111,8 @@ if __name__ == "__main__":
    S=[[4,17],[27,22],[05,06],[13,19],[26,21],[16,20],[25,12],[23,24]] #this will hold sensor GPIO channel numbers {trig/echo,}
    Readings = [0,0,0,0,0,0,0,0] #the most recent reading values from the sensor
    ReadingsLast = [0,0,0,0,0,0,0,0] #the most last  reading values from the sensor
-   LIMIT = 5 #minimum distance
-
+   LIMIT = 15 #minimum distance
+   LOWERLIMIT = 0
    r = 1
    direction = 0
    #try to correct wrong order
@@ -144,11 +144,11 @@ if __name__ == "__main__":
                    
 		ReadingsLast[s] = Readings[s]
                 Readings[s] = (stop_time-start_time)*34029/2 #reading in cm
-		if (Readings[s] > ReadingsLast[s]*1.1 and ReadingsLast[s] != 0):
-		    Readings[s] = Readings[s]*1.1
-		elif (Readings[s] < ReadingsLast[s]*.9 and ReadingsLast[s] != 0):
-		    Readings[s] =  Readings[s]*.9
-                if (Readings[s] <= LIMIT):
+		if (Readings[s] > ReadingsLast[s]*1.5 and ReadingsLast[s] != 0):
+		    Readings[s] = ReadingsLast[s]*1.5
+		elif (Readings[s] < ReadingsLast[s]*.5 and ReadingsLast[s] != 0):
+		    Readings[s] =  ReadingsLast[s]*.5
+                if (Readings[s] <= LIMIT and Readings[s] >= LOWERLIMIT):
                     if (s == 0):#front sensors
                         direction = direction | 1 #0001
                     elif (s == 1):#left sensors
@@ -176,13 +176,13 @@ if __name__ == "__main__":
                         direction = direction & 11
                     elif ( s == 3 and Readings[3] >= LIMIT and Readings[6] >= LIMIT and Readings[6] >= LIMIT):#right sensors
                         direction = direction & 7
-
-                print("{} {:.1f}".format(r, Readings[s]))
+		#if s ==1:
+	        print("{} {:.1f}".format(r, Readings[s]))
                 while (time.time() - start_time <= .045):                  
 		   message = port.read(25)
                    message = directionFlags[direction](message)
                    #message = directionFlags.setdefault(direction,message)(message)
-            	   print (' ' .join(x.encode('hex') for x in message))
+            	   #print (' ' .join(x.encode('hex') for x in message))
                    port.write(message)
 
             r += 1

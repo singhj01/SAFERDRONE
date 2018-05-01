@@ -18,7 +18,7 @@ def Front(message):
 def Left(message):
    #print ("left")
    temp = list(str(message))
-   temp[1] = binascii.unhexlify('fa') #94 06
+   temp[1] = binascii.unhexlify('00') #94 06
    temp[2] = binascii.unhexlify('05')
    return "".join(temp)
 
@@ -26,16 +26,16 @@ def Left(message):
 def Rear(message):
    #print ("Rear")
    temp = list(str(message))
-   temp[2] = binascii.unhexlify('9c') #a4 34
-   temp[3] = binascii.unhexlify('34')
+   temp[2] = binascii.unhexlify('a9') #a4 34
+   temp[3] = binascii.unhexlify('30')
    return "".join(temp)
 
 #Avoid object to the right
 def Right(message):
    #print ("Right")
    temp = list(message)
-   temp[1] = binascii.unhexlify('f9') #bc 01
-   temp[2] = binascii.unhexlify('01')
+   temp[1] = binascii.unhexlify('00') #bc 01
+   temp[2] = binascii.unhexlify('02')
    return "".join(temp)
 
 def Panic(message):
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
    S=[[4,17],[27,22],[05,06],[13,19],[26,21],[16,20],[25,12],[23,24]] #this will hold sensor GPIO channel numbers {trig/echo,}
    Readings = [0,0,0,0,0,0,0,0] #the most recent reading values from the sensor
-   LIMIT = 50 #minimum distance
+   LIMIT = 70 #minimum distance
 
    r = 1
    direction = 0
